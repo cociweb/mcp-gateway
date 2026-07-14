@@ -12,6 +12,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 WORKDIR /app
 
 COPY pyproject.toml ./
+COPY README.md ./
 COPY gateway ./gateway
 COPY config ./config
 
