@@ -1,0 +1,67 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "enabled": true,
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${FS_ROOT:-/data}"],
+      "env": {},
+      "namespace": "fs",
+      "readOnly": false,
+      "prefixTools": true,
+      "toolFilter": ["*"],
+      "resourceFilter": ["*"],
+      "promptFilter": ["*"],
+      "timeout": 30
+    },
+    "fetch": {
+      "type": "stdio",
+      "enabled": false,
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {},
+      "namespace": "fetch",
+      "readOnly": true,
+      "prefixTools": true,
+      "toolFilter": ["*"],
+      "timeout": 30
+    },
+    "remote-http": {
+      "type": "streamable-http",
+      "enabled": false,
+      "url": "${REMOTE_HTTP_URL:-https://example.com/mcp}",
+      "headers": {
+        "Authorization": "Bearer ${REMOTE_HTTP_TOKEN}"
+      },
+      "namespace": "remote",
+      "readOnly": false,
+      "prefixTools": true,
+      "toolFilter": ["*"],
+      "resourceFilter": ["*"],
+      "promptFilter": ["*"],
+      "timeout": 30
+    },
+    "remote-sse": {
+      "type": "sse",
+      "enabled": false,
+      "url": "${REMOTE_SSE_URL:-https://example.com/sse}",
+      "headers": {},
+      "namespace": "sse",
+      "readOnly": false,
+      "prefixTools": true,
+      "toolFilter": ["*"],
+      "timeout": 30
+    },
+    "remote-ws": {
+      "type": "websocket",
+      "enabled": false,
+      "url": "${REMOTE_WS_URL:-wss://example.com/ws}",
+      "headers": {},
+      "namespace": "ws",
+      "readOnly": false,
+      "prefixTools": true,
+      "toolFilter": ["*"],
+      "timeout": 30
+    }
+  }
+}

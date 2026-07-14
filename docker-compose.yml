@@ -1,0 +1,25 @@
+services:
+  gateway:
+    image: ghcr.io/cociweb/mcp-gateway:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-5555}:${GATEWAY_PORT:-5555}"
+    env_file:
+      - .env
+    environment:
+      MCP_SERVERS_CONFIG: /app/config/mcpServers.json
+      # Override any variable from .env here if needed, e.g.:
+      # GATEWAY_LOG_LEVEL: debug
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - mcp
+
+networks:
+  mcp:
+    name: mcp
+    driver: bridge
