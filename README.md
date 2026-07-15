@@ -29,7 +29,9 @@ gateway/
 ```
 
 Each enabled upstream server becomes a FastMCP proxy sub-server
-(`fastmcp.server.create_proxy`), gets a `ServerFilterMiddleware` attached
+(`FastMCPProxy` with an explicit `client_factory` that builds a fresh
+transport per call, for concurrent-request isolation), gets a
+`ServerFilterMiddleware` attached
 (enforcing `readOnly` / `toolFilter` / `resourceFilter` / `promptFilter`), and
 is mounted onto the main gateway server with `namespace=<namespace>` when
 `prefixTools` is enabled. Tool/resource/prompt names are then automatically

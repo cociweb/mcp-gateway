@@ -1,7 +1,9 @@
 """Builds the aggregated gateway FastMCP server from ``mcpServers.json``.
 
 For every enabled upstream server, a :class:`fastmcp.FastMCP` proxy
-sub-server is created (via ``FastMCP.as_proxy``) with a per-server
+sub-server is created (via ``FastMCPProxy`` with an explicit
+``client_factory`` that builds a fresh transport per call, see
+``build_gateway`` for why) with a per-server
 :class:`~gateway.namespace.ServerFilterMiddleware` attached, then mounted
 onto the main gateway server with ``namespace=<effective_namespace>`` when
 ``prefixTools`` is enabled (or without a namespace otherwise).
@@ -12,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from fastmcp import Client, FastMCP
-from fastmcp.server import create_proxy
+from fastmcp.server.providers.proxy import FastMCPProxy
 
 from .loader import ServerConfig
 from .logging import get_logger
@@ -77,12 +79,22 @@ async def build_gateway(
             continue
 
         try:
-            transport = build_transport(config)
+            build_transport(config)
         except ValueError as exc:
             logger.error("Skipping server '%s': %s", server_name, exc)
             continue
 
-        sub = create_proxy(transport, name=server_name)
+        # Build a fresh transport (and Client) on every call instead of
+        # sharing a single transport instance across concurrent requests.
+        # create_proxy()'s default session strategy only guarantees a fresh
+        # *session* per call (via Client.new()) while still reusing the same
+        # underlying transport/connection object; concurrent calls sharing
+        # that transport can corrupt each other's auth/session state against
+        # stateful or strict upstream servers (observed as spurious 401s).
+        def _make_client(config: ServerConfig = config) -> Client:
+            return Client(build_transport(config), timeout=config.timeout)
+
+        sub = FastMCPProxy(client_factory=_make_client, name=server_name)
         sub.add_middleware(build_filter_middleware(config))
 
         use_prefix = config.prefixTools if config.prefixTools is not None else prefix_tools_default
